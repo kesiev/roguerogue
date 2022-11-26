@@ -2093,6 +2093,7 @@ function Game(settings, scenesloader) {
         image.style.display="block";
         image.style.marginBottom="20px";
         panel.appendChild(image);
+        return image;
     }
 
     this.configure =(node)=>{
@@ -2195,10 +2196,12 @@ function Game(settings, scenesloader) {
         startButton.style.color=settings.pageBackgroundColor;
         startButton.onclick=()=>{
             guiPanel.innerHTML="";
-            addConfigImage(guiPanel);
-            let span=createSpan(guiPanel,"Loading...");
+            let
+                image=addConfigImage(guiPanel),
+                span=createSpan(guiPanel,"Loading...");
             span.style.display="block";
             span.style.textAlign="center";
+            image.className="floating";
 
             credits.parentNode.removeChild(credits);
             saveConfig();

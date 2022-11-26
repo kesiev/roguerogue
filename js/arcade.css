@@ -6,3 +6,16 @@ CANVAS {
     image-rendering: pixelated;
     -ms-interpolation-mode: nearest-neighbor;
 }
+
+.floating {  
+    animation-name: floating;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+}
+
+@keyframes floating {
+    from { transform: translate(0,  0); }
+    50%  { transform: translate(0, -2vh); }
+    to   { transform: translate(0, 0); }    
+}
