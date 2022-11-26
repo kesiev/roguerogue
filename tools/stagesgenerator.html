@@ -1,0 +1,146 @@
+<html>
+    <head>
+        <script src="../js/arcade.js"></script>
+
+        <script src="../js/game/resources.js"></script>
+        <script src="../js/game/stagesgenerator.js"></script>
+        <script src="../js/game/const.js"></script>
+        <script src="../js/game/functions.js"></script>
+    </head>
+    <body onload="onl()"></body>
+</html>
+<script>
+
+function onl() {
+
+    let C={};
+    loadResourcesEnvironment(C);
+    C.SCREENHEIGHT -= 16;
+
+    let game = new Game({
+        resourcesPrefix:"../",
+        name:"ROGUEROGUE-STAGESGEN",
+        frameSkip:10,
+        fps:60,
+        width:1,
+        height:1,
+        pageBackgroundColor:"#fff",
+        backgroundColor:"#fff",
+        palette:loadResourcesPalette(C),
+        fonts:loadResourcesFonts(C),
+        images:loadResourcesImages(C)
+    },game=>{
+
+        gameLoadConst(game,C);
+        gameLoadFunctions(game,C);
+        gameLoadStagesGenerator(game,C);
+
+        C.LETTERBUBBLESCOUNT=6;
+
+        let
+            TILESIZE=8;
+
+        let STAGES=stagesGenerator(game,C.SEED,C);
+
+        STAGES.forEach((stage,s)=>{
+            
+            let image=game.newImage(C.SCREENWIDTH,C.SCREENHEIGHT+30);
+            game.fillRect(game.palette[0],0,0,C.SCREENWIDTH,C.SCREENHEIGHT,image);
+            
+            stage.bonusStageSlots.forEach(slot=>{
+                let
+                    px=slot.x/8*TILESIZE,
+                    py=slot.y/8*TILESIZE,
+                    tagy=0,
+                    s=TILESIZE*2;
+                game.fillRect({html:"rgb(40,40,40,1)"},px+1,py+1,s-2,s-2,image);
+            })
+
+            for (let y=0;y<stage.map.length;y++) {
+                for (let x=0;x<stage.map[y].length;x++) {
+                    let
+                        px=x*TILESIZE,
+                        py=y*TILESIZE;
+                    switch (stage.map[y][x]) {
+                        case "-":
+                        case "#":{
+                            game.drawSimpleCell(stage.cells,0,px,py,image);
+                            break;
+                        }
+                        case "^":{
+                            game.drawSimpleCell(stage.cells,1,px,py,image);
+                            break;
+                        }
+                        case "1":{
+                            game.drawSimpleCell(stage.cells,2,px,py,image);
+                            break;
+                        }
+                        case "2":{
+                            game.drawSimpleCell(stage.cells,3,px,py,image);
+                            break;
+                        }
+                        case "3":{
+                            game.drawSimpleCell(stage.cells,4,px,py,image);
+                            break;
+                        }
+                        case "4":{
+                            game.drawSimpleCell(stage.cells,5,px,py,image);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            stage.spawnpoints.specialBubbles.forEach(slot=>{
+                game.fillRect(game.palette[slot.side?2:3],slot.x+1,slot.y+(slot.side?2:-6)+((slot.x/8)%2)*4,14,2,image);
+            });
+
+            if (stage.enemies.length)
+                stage.enemies.forEach(slot=>{
+                    let
+                        px=slot.x/8*TILESIZE,
+                        py=slot.y/8*TILESIZE,
+                        tagy=0,
+                        s=TILESIZE*2;
+                    game.fillRect(game.palette[1],px,py,s,s,image);
+                    game.fillRect(game.palette[0],px+1,py+1,s-2,s-2,image);
+                    game.fillRect(game.palette[slot.type],px+2,py+2,s-4,s-4,image);
+                    if (game.setSpeedY<0)
+                        tagy=py+1;
+                    else
+                        tagy=py+s-5;
+                    if (slot.flipX)
+                        game.fillRect(game.palette[0],px+1,tagy,4,4,image);
+                    else
+                        game.fillRect(game.palette[0],px+s-5,tagy,4,4,image);
+                });
+            else
+                console.error("Stage",s,"has no enemies!")
+
+            if (stage.specialBubbles) {
+                let bubbles="";
+                stage.specialBubbles.forEach(b=>bubbles+=b[0].toUpperCase());
+                game.print(game.fonts.normal.normal,3,bubbles,0,210,image);
+            }
+
+            if (stage.scheduleBonus)
+                game.print(game.fonts.normal.normal,3,stage.scheduleBonus,0,219,image);
+
+            if (stage.letterBubbles)
+                stage.letterBubbles.forEach((bubble,id)=>{
+                    game.print(game.fonts.normal.normal,3,"YENDOR"[bubble],id*8,228,image);
+                })
+
+            game.print(game.fonts.normal.outline,1,s,0,0,image);
+
+            image.node.style.margin="20px";
+            document.body.appendChild(image.node);
+        });
+        
+    });
+
+    game.start();
+
+}
+
+</script>

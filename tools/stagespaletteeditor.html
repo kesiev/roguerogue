@@ -1,0 +1,204 @@
+<html>
+    <head>
+        <script src="../js/game/resources.js"></script>
+        <script src="../js/arcade.js"></script>
+        <script src="../js/game/stagesgenerator.js"></script>
+        <script src="../js/game/functions.js"></script>
+    </head>
+    <body onload="onl()"></body>
+</html>
+<script>
+
+function onl() {
+
+    let C={};
+    loadResourcesEnvironment(C);
+
+    let game = new Game({
+        resourcesPrefix:"../",
+        name:"ROGUEROGUE-PALETTES",
+        frameSkip:10,
+        fps:60,
+        width:1,
+        height:1,
+        pageBackgroundColor:"#fff",
+        backgroundColor:"#fff",
+        palette:loadResourcesPalette(C),
+        fonts:loadResourcesFonts(C),
+        images:[
+            {
+                id:"walls",
+                src:"sprites/walls.png",
+                cells:{
+                }
+            }
+        ],
+    },game=>{
+
+        gameLoadFunctions(game,C);
+        gameLoadStagesGenerator(game,C);
+
+        let
+            colorLabels=[
+                "Dark (black)","Details (yellow)","Base (blue)","Borders (gray)","Shadow (brown)"
+            ],
+            previews=[],
+            palette=JSON.parse(JSON.stringify(C.STAGEPALETTES[0][0])),
+            editor=document.createElement("div"),
+            preview=document.createElement("div");
+
+        editor.style.padding="10px";
+        document.body.appendChild(editor);
+        document.body.appendChild(preview);
+
+        function blit(skinid,currentPalette,ox,oy,ow,oh,dx,dy,cells) {
+            let
+                currentTemplate=skinid*16;
+
+            for (let x=0;x<ow;x++)
+                for (let y=0;y<oh;y++) {
+                    let pixel=game.getPixel(game.images.walls,ox+x,oy+currentTemplate+y);
+                    if (pixel[3])
+                        switch (pixel[0]) {
+                            case 16:{ // Black
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[0]].rgb);
+                                break;
+                            }
+                            case 250:{ // Yellow
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[1]].rgb);
+                                break;
+                            }
+                            case 0:{ // Blue
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[2]].rgb);
+                                break;
+                            }
+                            case 115:{ // Gray
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[3]].rgb);
+                                break;
+                            }
+                            case 160:{ // Brown
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[4]].rgb);
+                                break;
+                            }
+                            default:{
+                                console.log(x,y);
+                                debugger;
+                            }
+                        }
+                    else
+                        game.putPixel(cells,dx+x,dy+y,game.palette[0].rgb);
+                }
+        }
+
+        let updatePreview=()=>{
+
+            let busycolors={};
+            editor.innerHTML="";
+            palette.forEach(color=>{
+                busycolors[color]=(busycolors[color]||0)+1;
+            });
+            palette.forEach((setcolor,id)=>{
+                let
+                    label=document.createElement("div"),
+                    selector=document.createElement("div");
+                label.innerHTML="Color "+id+": "+colorLabels[id];
+                game.palette.forEach((palettecolor,paletteid)=>{
+                    let color=document.createElement("div");
+                    color.style.display="inline-block";
+                    color.style.marginRight="10px";
+                    color.style.border="5px solid "+(setcolor==paletteid?"red":"black");
+                    color.style.width=color.style.height="20px";
+                    color.style.backgroundColor=palettecolor.html;
+                    if ((setcolor!=paletteid)&&busycolors[paletteid])
+                        color.style.opacity=0.2;
+                    color.onclick=()=>{
+                        palette[id]=paletteid;
+                        updatePreview();
+                    }
+                    if (busycolors[paletteid]>1)
+                        color.style.borderStyle="dashed";
+                    selector.appendChild(color);
+                });
+                    
+                editor.appendChild(label);
+                editor.appendChild(selector);
+            });
+
+            let
+                found,
+                index={};
+            C.STAGEPALETTES.forEach((s,set)=>{
+                s.forEach((p,pos)=>{
+                    let
+                        match=true,
+                        elements={},
+                        id=p.join(",");
+                    if (index[p] === undefined)
+                        index[p]=set+"/"+pos;
+                    else
+                        console.warn("Duplicated palette",id,"at",set+"/"+pos,"vs.",index[p]);
+                    p.forEach((color,cpos)=>{
+                        if (elements[color])
+                            console.warn("Duplicated color",color,"for",id,"at",set+"/"+pos);
+                        else
+                            elements[color]=true;
+                        if (palette[cpos]!=color)
+                            match=false;
+                    });
+                    if (match)
+                        found=set+"/"+pos;
+                });
+            });
+            if (found!==undefined) {
+                let label=document.createElement("div");
+                label.innerHTML="Already in palette at #"+ found;
+                label.style.color="#f00";
+                editor.appendChild(label);
+            }
+
+            let label=document.createElement("input");
+            label.value="["+palette.join(",")+"]";
+            editor.appendChild(label);
+
+            let
+                templates=game.images.walls.height/16,
+                gx=8,
+                gy=8;
+
+            for (let i=templates-1;i>=0;i--) {
+                let out=previews[i];
+
+                if (!out) {
+                    out=game.newImage(100,100);
+                    out.node.style.backgroundColor=game.palette[0].html;
+                    preview.appendChild(out.node);
+                    previews[i]=out;
+                }
+                
+                for (let z=0;z<3;z++) {
+                    blit(i,palette,8,0,16,16,gx+0,z*16+gy,out);
+                    blit(i,palette,8,0,16,16,gx+40,z*16+gy,out);
+                    blit(i,palette,0,0,8,8,gx+16+z*8,0+gy,out);
+                    blit(i,palette,0,8,8,8,gx+16+z*8,8+gy,out);
+                    blit(i,palette,0,0,8,8,gx+16+z*8,16+gy,out);
+                    blit(i,palette,0,8,8,8,gx+16+z*8,24+gy,out);
+                    blit(i,palette,0,0,8,8,gx+16+z*8,40+gy,out);
+                }
+
+                out.ctx.putImageData(out.imgdata,0,0);
+
+            }
+            
+
+        }
+
+        updatePreview();
+        
+
+    });
+
+    game.start();
+
+}
+
+</script>

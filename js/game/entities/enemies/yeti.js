@@ -1,0 +1,181 @@
+function gameLoadYeti(game,scene,C) {
+    scene.sprites.yeti={
+        tags:["enemy","hitable","tostart","killplayer","toclear","stagesprite","bright"],
+        hitboxX:2, hitboxY:2,
+        hitboxWidth:12, hitboxHeight:14,
+        zIndex:C.ENEMYZINDEX,
+        minSpeedX:C.MINSPEEDX, maxSpeedX:C.MAXSPEEDX, minSpeedY:C.MINSPEEDY, maxSpeedY:C.MAXSPEEDY,
+        animations:[
+            {
+                still:{
+                    cells:game.cells.yetiStill,
+                },
+                walk:{
+                    loop:true,
+                    cells:game.cells.yetiWalking,
+                    speed:0.1
+                },
+                jump:{
+                    loop:true,
+                    cells:game.cells.yetiJumping,
+                    speed:0.1
+                },
+                fall:{
+                    loop:true,
+                    cells:game.cells.yetiFalling,
+                    speed:0.1
+                },
+                dead:{
+                    cells:game.cells.yetiStill,
+                },
+                bubble:{
+                    loop:true,
+                    cells:game.cells.yetiBubble,
+                    speed:0.1
+                },
+                stunned:{
+                    cells:game.cells.yetiStunned
+                },
+                panic:{
+                    loop:true,
+                    cells:game.cells.yetiPanic,
+                    speed:0.2
+                },
+                washed:{
+                    cells:game.cells.yetiWashed
+                }
+            },{
+                still:{
+                    cells:game.cells.angryYetiStill,
+                },
+                walk:{
+                    loop:true,
+                    cells:game.cells.angryYetiWalking,
+                    speed:0.1
+                },
+                jump:{
+                    loop:true,
+                    cells:game.cells.angryYetiJumping,
+                    speed:0.1
+                },
+                fall:{
+                    loop:true,
+                    cells:game.cells.angryYetiFalling,
+                    speed:0.1
+                },
+                dead:{
+                    cells:game.cells.angryYetiStill,
+                },
+                bubble:{
+                    loop:true,
+                    cells:game.cells.angryYetiBubble,
+                    speed:0.1
+                },
+                stunned:{
+                    cells:game.cells.angryYetiStunned
+                },
+                panic:{
+                    loop:true,
+                    cells:game.cells.angryYetiPanic,
+                    speed:0.2
+                },
+                washed:{
+                    cells:game.cells.angryYetiWashed
+                }
+            }
+        ],
+        properties:{
+            brightnessX:8,
+            brightnessY:8,
+            brightness:16,
+            onBubbleRelease:{
+                addNewSprite:"yeti",
+                setMode:1
+            },
+            onBubblePopped:{
+                scatterAround:true
+            },
+            onDie:{
+                spawnBonus:"tier1points",
+                spawnBonusSequence:C.SPAWNBONUSSEQUENCE
+            }
+        },
+        states:{
+            default:{
+                collisions:C.ENEMYCOLLISIONS,
+                onBubbled:C.cageInBubble,
+                onSnowed:C.cageInSnow,
+                onSquished:C.squished,
+                onWashed:C.washed,
+                onRushed:C.rushed,
+                onBulleted:C.bulleted,
+                onFrozen:C.frozen,
+                onUnfrozen:C.unfrozen,
+                onSucked:C.sucked,
+                onGunned:C.gunned,
+                onEnter:(game,scene,sprite)=>{
+                    C.enemyStart(game,scene,sprite);
+                    C.walkingEnemyStart(game,scene,sprite);
+                    if (!sprite.timer) sprite.timer=(C.ENEMYJUMPTIMER*(1+C.RND.randomInteger(3)));
+                    if (!sprite.fireTimer) sprite.fireTimer=C.ENEMYFIRETIMER;
+                    if (sprite.resetJumpsCount === undefined) sprite.resetJumpsCount=true;
+                },
+                onLogic:(game,scene,sprite)=>{
+                    C.commonEnemyLogic(game,scene,sprite);
+                    if (C.enemyWalking(game,scene,sprite,C.SKELETONMOVESPEED) && C.enemyJumping(game,scene,sprite,C.SKELETONMOVESPEED)) {
+                        sprite.timer--;
+                        if (!sprite.timer) sprite.changeState(sprite.states.jumping);
+                        if (sprite.fireTimer)
+                            sprite.fireTimer--;
+                        else {
+                            let target=C.getFrontPlayer(game,scene,sprite);
+                            if (target) {
+                                if (target.x>sprite.x)
+                                    sprite.setFlipX(false);
+                                else
+                                    sprite.setFlipX(true);
+                                sprite.changeState(sprite.states.firing);
+                            }
+                        }
+                    }
+                }
+            },
+            firing:{
+                onBubbled:C.cageInBubble,
+                onSnowed:C.cageInSnow,
+                onSquished:C.squished,
+                onWashed:C.washed,
+                onRushed:C.rushed,
+                onBulleted:C.bulleted,
+                onFrozen:C.frozen,
+                onUnfrozen:C.unfrozen,
+                onSucked:C.sucked,
+                onGunned:C.gunned,
+                onEnter:(game,scene,sprite)=>{
+                    sprite.setPhysicsEnabled(false);
+                    sprite.setAnimation(sprite.animations[sprite.mode].still);
+                    sprite.aimingTimer=C.ENEMYAIMINGTIMER;
+                },
+                onLogic:(game,scene,sprite)=>{
+                    C.commonEnemyLogic(game,scene,sprite);
+                    if (sprite.aimingTimer)
+                        sprite.aimingTimer--;
+                    else {
+                        let ball=game.addNewSprite(scene.sprites.snowball,sprite.x,sprite.y);
+                        ball.setSpeedX(sprite.flipX?-C.SNOWBALLSPEED:C.SNOWBALLSPEED);
+                        sprite.changeState(sprite.states.default);
+                    }
+                }
+            },
+            jumping:C.ENEMYJUMPING,
+            smalljumping:C.SMALLJUMPING,
+            preparing:C.ENEMYPREPARING,
+            kill:C.ENEMYKILL,
+            snowing:C.ENEMYSNOWING,
+            stunned:C.ENEMYSTUNNED,
+            rolling:C.ENEMYROLLING,
+            sucking:C.ENEMYSUCKING,
+            sucked:C.ENEMYSUCKED
+        }
+    }
+}

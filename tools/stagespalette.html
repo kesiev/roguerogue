@@ -1,0 +1,123 @@
+<html>
+    <head>
+        <script src="../js/arcade.js"></script>
+        <script src="../js/game/resources.js"></script>
+        <script src="../js/game/stagesgenerator.js"></script>
+        <script src="../js/game/const.js"></script>
+        <script src="../js/game/functions.js"></script>    </head>
+    <body onload="onl()"></body>
+</html>
+<script>
+
+function onl() {
+
+    let C={};
+    loadResourcesEnvironment(C);
+
+    let game = new Game({
+        resourcesPrefix:"../",
+        name:"ROGUEROGUE-PALETTES",
+        frameSkip:10,
+        fps:60,
+        width:1,
+        height:1,
+        pageBackgroundColor:"#fff",
+        backgroundColor:"#fff",
+        palette:loadResourcesPalette(C),
+        fonts:loadResourcesFonts(C),
+        images:[
+            {
+                id:"walls",
+                src:"sprites/walls.png",
+                cells:{
+                }
+            }
+        ],
+    },game=>{
+
+        let
+            templates=game.images.walls.height/16;
+
+        function blit(skinid,currentPalette,ox,oy,ow,oh,dx,dy,cells) {
+            let
+                currentTemplate=skinid*16;
+
+            for (let x=0;x<ow;x++)
+                for (let y=0;y<oh;y++) {
+                    let pixel=game.getPixel(game.images.walls,ox+x,oy+currentTemplate+y);
+                    if (pixel[3])
+                        switch (pixel[0]) {
+                            case 16:{ // Black
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[0]].rgb);
+                                break;
+                            }
+                            case 250:{ // Yellow
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[1]].rgb);
+                                break;
+                            }
+                            case 0:{ // Blue
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[2]].rgb);
+                                break;
+                            }
+                            case 115:{ // Gray
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[3]].rgb);
+                                break;
+                            }
+                            case 160:{ // Brown
+                                game.putPixel(cells,dx+x,dy+y,game.palette[currentPalette[4]].rgb);
+                                break;
+                            }
+                            default:{
+                                console.log(x,y);
+                                debugger;
+                            }
+                        }
+                    else
+                        game.putPixel(cells,dx+x,dy+y,game.palette[0].rgb);
+                }
+        }
+
+        gameLoadFunctions(game,C);
+        gameLoadStagesGenerator(game,C);
+
+        let gx=8,gy=8;
+
+        for (let i=templates-1;i>=0;i--) {
+
+            C.STAGEPALETTES.forEach((set,s)=>{
+
+                set.forEach((palette,p)=>{
+                    
+                    let out=game.newImage(100,100);
+                    for (let z=0;z<3;z++) {
+                        blit(i,palette,8,0,16,16,gx+0,z*16+gy,out);
+                        blit(i,palette,8,0,16,16,gx+40,z*16+gy,out);
+                        blit(i,palette,0,0,8,8,gx+16+z*8,0+gy,out);
+                        blit(i,palette,0,8,8,8,gx+16+z*8,8+gy,out);
+                        blit(i,palette,0,0,8,8,gx+16+z*8,16+gy,out);
+                        blit(i,palette,0,8,8,8,gx+16+z*8,24+gy,out);
+                        blit(i,palette,0,0,8,8,gx+16+z*8,40+gy,out);
+                    }
+                    
+                    out.ctx.putImageData(out.imgdata,0,0);
+                    out.node.style.backgroundColor=game.palette[0].html;
+                    document.body.appendChild(out.node);
+
+                    out.node.title="Set "+s+" Palette "+p;
+                
+                });
+
+            });
+
+            document.body.appendChild(document.createElement("hr"));
+           
+        }
+        
+
+    });
+
+    game.start();
+
+}
+
+</script>

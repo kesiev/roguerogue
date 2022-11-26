@@ -1,0 +1,531 @@
+<html>
+	<head>
+		<style type="text/css">
+			* {
+				font-size: 12px;
+				font-style: Helvetica
+			}
+		</style>
+	</head>
+	<body onload="onl()">
+	<table>
+		<tr><td><input id="lockwave" type="checkbox"> Wave</td><td><select id="wave" onchange="play()">
+			<option value="sine">Sine</option>
+			<option value="saw">Saw</option>
+			<option value="square">Square</option>
+			<option value="triangle">Triangle</option>
+			<option value="tangent">Tangent</option>
+			<option value="whistle">Whistle</option>
+			<option value="breaker">Breaker</option>
+			<option value="whitenoise">White noise</option>
+		</select></td></tr>
+		<tr><td colspan=2><canvas id="wavedraw" width=300 height=40 style="border:1px solid #fefefe"></canvas></td></tr>
+		<tr><td><input id="lockattack" type="checkbox"> Attack time</td>
+			<td><input type="range" min="0" max="100" id="attack" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="lockdecay" type="checkbox"> Decay time</td>
+			<td><input type="range" min="0" max="100" id="decay" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="locksustain" type="checkbox"> Sustain time</td>
+			<td><input type="range" min="0" max="100" id="sustain" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="lockrelease" type="checkbox"> Release time</td>
+			<td><input type="range" min="0" max="100" id="release" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="lockfrequency" type="checkbox"> Frequency</td>
+			<td><input type="range" min="0" max="100" id="frequency" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="locklimit" type="checkbox" checked> Limit</td>
+			<td><input type="range" min="0" max="100" value="100" id="limit" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="locktremolof" type="checkbox" checked> Tremolo frequency</td>
+			<td><input type="range" min="0" max="100" value="0" id="tremoloFrequency" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="locktremolod" type="checkbox" checked> Tremolo depth</td>
+			<td><input type="range" min="0" max="100"  value="0" id="tremoloDepth" style="width:300px" onchange="play()"></td>
+		</tr>
+		<tr><td><input id="lockpitch" type="checkbox" checked> Pitch</td>
+			<td><input type="range" min="0" max="100" id="pitch" style="width:300px" onchange="play()"></td><td><input type="button" onclick="document.getElementById('pitch').value=50;play()" value="Reset"></td>
+		</tr>
+		<tr><td><input id="lockjump1onset" type="checkbox" checked> Jump 1 onset</td>
+			<td><input type="range" min="0" max="100" value="0" id="jump1onset" style="width:300px" onchange="play()"></td><td><input type="button" onclick="document.getElementById('jump1onset').value=0;play()" value="Reset"></td>
+		</tr>
+		<tr><td><input id="lockjump1amount" type="checkbox" checked> Jump 1 amount</td>
+			<td><input type="range" min="0" max="100" id="jump1amount" style="width:300px" onchange="play()"><td><input type="button" onclick="document.getElementById('jump1amount').value=50;play()" value="Reset"></td></td>
+		</tr>
+		<tr><td><input id="lockjump2onset" type="checkbox" checked> Jump 2 onset</td>
+			<td><input type="range" min="0" max="100" value="0" id="jump2onset" style="width:300px" onchange="play()"></td><td><input type="button" onclick="document.getElementById('jump2onset').value=0;play()" value="Reset"></td>
+		</tr>
+		<tr><td><input id="lockjump2amount" type="checkbox" checked> Jump 2 amount</td>
+			<td><input type="range" min="0" max="100" id="jump2amount" style="width:300px" onchange="play()"></td><td><input type="button" onclick="document.getElementById('jump2amount').value=50;play()" value="Reset"></td>
+		</tr>
+		<tr><td><input id="lockbitcrush" type="checkbox" checked> Bitcrush</td>
+			<td><input type="range" min="0" max="100" id="bitcrush" style="width:300px" onchange="play()" value="0"></td><td><input type="button" onclick="document.getElementById('bitcrush').value=0;play()" value="Reset"></td>
+		</tr>
+		<tr><td><input id="lockbitcrushsweep" type="checkbox" checked> Bitcrush sweep</td>
+			<td><input type="range" min="0" max="100" id="bitcrushsweep" style="width:300px" onchange="play()"></td><td><input type="button" onclick="document.getElementById('bitcrushsweep').value=50;play()" value="Reset"></td>
+		</tr>
+	</table>
+	</div>
+	<div class="filerow">
+		<input type="button" value="Play" onclick="play()"> | <input type="button" value="Play Note C4" onclick="play('C4-')"> | <input type="button" value="Randomize" onclick="random()"></div>
+		</div>
+	<div class="filerow">
+		Piano: <input type="text" id="piano" style="width:50px"> Octave: <input type="button" onclick="setOctave(-1)" value="-"> <span id="currentOctave"></span> <input type="button" onclick="setOctave(1)" value="+"><br>Notes book:<br>
+		<textarea type="text" id="notesBook" style="font-family:monospace" cols=80 rows=4></textarea>
+	</div>
+	<div class="filerow">
+		<canvas id="outwav" width=600 height=80 style="border:1px solid #fefefe"></canvas><br>
+	</div>
+	<div class="filerow">
+		Paste this in code:<br>
+		<textarea type="text" id="fileraw" style="font-family:monospace" cols=80 rows=4></textarea>
+	</div>
+	<div class="filerow">
+		Load sound: <input type="button" onclick="load()" value="Load"><br>
+		<textarea type="text" id="fileload" style="font-family:monospace" cols=80 rows=4></textarea>
+	</div>
+	</body>
+</html>
+<script>
+
+// --- NOISEMAKER (hacked from Rewtro and from Wright :) )
+
+var
+	NOISETIMES=["attack","sustain","decay","release"],
+    NOISEWAVES={
+        whitenoise:function(v,i,p) { return Math.floor((i-1)/(p/2))!=Math.floor(i/(p/2))?Math.random()*2-1:v },
+        square:function(v,i,p) { return ((Math.floor(i/(p/2))%-2)*-2)+1 },
+        sine:function(v,i,p) { return Math.sin(i*6.28/p) },
+        saw:function(v,i,p) { return ((v+1+(2/p)) % 2) - 1},
+        triangle:function(v,i,p) { return Math.abs((i % p - (p/2))/p*4)-1 },
+        tangent:function(v,i,p) { 
+            v= 0.15*Math.tan(i/p*3.14);
+            if (v<-1) v=-1;
+            if (v>1) v=1;
+            return v;
+        },
+        whistle:function(v,i,p) { return 0.75 * Math.sin(i/p*6.28) + 0.25 * Math.sin(40 *3.14 * i/p) },
+        breaker:function(v,i,p) {
+            v=(i/p) + 0.8660;
+            v=v - Math.floor(v);
+            return -1 + 2 * Math.abs(1 - v*v*2);
+        }
+    },
+    OCTAVES=[2,7],
+    NOISERANGES={
+		"attack":[0,0.3],
+		"sustain":[0,0.4],
+		"limit":[0.2,0.6],
+		"decay":[0,0.3],
+		"release":[0,0.4],
+		"frequency":[100,1600],
+		"tremoloFrequency":[0,50],
+		"tremoloDepth":[0,1],
+		"pitch":[-0.002,0.002],
+		"frequencyJump1onset":[0,1],
+		"frequencyJump1amount":[-1,1],
+		"frequencyJump2onset":[0,1],
+		"frequencyJump2amount":[-1,1],
+		"bitCrush":[0,16],
+		"bitCrushSweep":[-16,16]
+	},
+    NOISEDEFAULTS={
+		bitCrush:0, // 1-16
+		bitCrushSweep:0, // -16 16
+		attack:0, // 0-0.3
+		sustain:0, // 0-0.4
+		limit:0.6, // .2-.6
+		decay:0.1, // 0-0.3
+		release:0, // 0-0.4
+		frequency:850, // 100-1600
+		tremoloFrequency:0, // 0-50
+		tremoloDepth:0, // 0-1
+		frequencyJump1onset:0, // 0-1
+		frequencyJump1amount:0, // -1-1
+		frequencyJump2onset:0, // 0-1
+		frequencyJump2amount:0, // -1-1
+		pitch:0 // 0-.002
+	};
+
+var octave=4,pianoChannel=0,audioContext,audioPlaying,audioOut;
+
+function generateNoise(sample) {
+
+	if (!audioContext) {
+		if (window.AudioContext)
+            audioContext=new window.AudioContext();
+        else if (window.webkitAudioContext)
+            audioContext=new window.webkitAudioContext();
+       	if (audioContext) {
+			ready=true;
+			audioOut=audioContext.createGain();
+			audioOut.connect(audioContext.destination);
+			audioOut.gain.value=0.9;
+		} else return false;
+	}
+
+    var
+        sampleRate = audioContext.sampleRate,
+        data={},
+        out,bits,steps;
+
+    for (var a in sample) data[a]=sample[a];
+    for (var i=0;i<NOISETIMES.length;i++) data[NOISETIMES[i]]*=sampleRate;
+
+    var 
+        attackDecay=data.attack+data.decay,
+        attackSustain=attackDecay+data.sustain,
+        samplePitch = sampleRate/data.frequency,
+        sampleLength = attackSustain+data.release,  
+
+        tremolo = .9,
+        value = .9,
+        envelope = 0;    
+
+    var buffer = audioContext.createBuffer(2,sampleLength,sampleRate);
+
+    for(var i=0;i<2;i++) {
+        var channel = buffer.getChannelData(i),
+            jump1=sampleLength*data.frequencyJump1onset,
+        jump2=sampleLength*data.frequencyJump2onset;
+        for(var j=0; j<buffer.length; j++) {
+            // ADSR Generator
+            value = NOISEWAVES[data.wave](value,j,samplePitch);
+            if (j<=data.attack) envelope=j/data.attack;
+            else if (j<=attackDecay) envelope=-(j-attackDecay)/data.decay*(1-data.limit)+data.limit;
+            if (j>attackSustain) envelope=(-(j-attackSustain)/data.release+1)*data.limit;
+            // Tremolo
+            tremolo = NOISEWAVES.sine(value,j,sampleRate/data.tremoloFrequency)*data.tremoloDepth+(1-data.tremoloDepth);
+            out = value*tremolo*envelope*0.9;
+            // Bit crush
+            if (data.bitCrush||data.bitCrushSweep) {
+                bits = Math.round(data.bitCrush + j / sampleLength * data.bitCrushSweep);
+                if (bits<1) bits=1;
+                if (bits>16) bits=16;
+                steps=Math.pow(2,bits);
+                out=-1 + 2 * Math.round((0.5 + 0.5 * out) * steps) / steps;
+            }
+
+            // Done!
+            if (!out) out=0;
+            if(out>1) out= 1;
+            if(out<-1) out = -1;
+
+            channel[j]=out;
+
+            // Frequency jump
+            if (j>=jump1) { samplePitch*=1-data.frequencyJump1amount; jump1=sampleLength }
+            if (j>=jump2) { samplePitch*=1-data.frequencyJump2amount; jump2=sampleLength }
+
+            // Pitch
+            samplePitch-= data.pitch;
+        }
+    }
+    return {
+    	buffer:buffer,
+    	properties:{}
+    };
+}
+
+function playAudio(sample,loop,volume,force) {
+    if (sample&&audioContext) {
+    	if (audioPlaying) {
+            audioPlaying.source.stop(0);
+            audioPlaying.gain.disconnect();
+            audioPlaying.source.disconnect();
+            audioPlaying=0;
+    	}
+        var sound={
+            gain:audioContext.createGain(),
+            source: audioContext.createBufferSource(),
+            ended:false
+        }
+        sound.gain.connect(audioOut);
+        sound.gain.gain.value=volume||0.9;
+        sound.source.buffer = sample.buffer;
+        sound.source.loop=loop;
+        if (sample.properties.pitchStart!==undefined)
+            sound.source.playbackRate.value=sample.properties.pitchStart+(sample.properties.pitchRange*Math.random());
+        sound.source.onended=()=>{ sound.ended=true; }
+        if (loop&&(sample.properties.loopStart!==undefined)) {
+            sound.source.loopStart=sample.properties.loopStart;
+            sound.source.loopEnd=sample.properties.loopEnd;
+        }
+        sound.source.connect(sound.gain);
+        sound.source.start(0);
+        audioPlaying=sound;
+    }
+}
+
+function setOctave(oct) {
+	octave+=oct;
+	if (octave<=OCTAVES[0]) octave=OCTAVES[0]+1;
+	if (octave>=OCTAVES[1]) octave=OCTAVES[1]-1;
+	document.getElementById("currentOctave").innerHTML=octave;
+}
+
+var keyboard = {
+
+	/* 2 */
+	50: 'C#,-1',
+	
+	/* 3 */
+	51: 'D#,-1',
+	
+	/* 5 */
+	53: 'F#,-1',
+	
+	/* 6 */
+	54: 'G#,-1',
+	
+	/* 7 */
+	55: 'A#,-1',
+	
+	/* 9 */
+	57: 'C#,0',
+	
+	/* 0 */
+	48: 'D#,0',
+	
+	/* + */
+	187: 'F#,0',
+	61: 'F#,0',
+	
+	/* Q */
+	81: 'C,-1',
+	
+	/* W */
+	87: 'D,-1',
+	
+	/* E */
+	69: 'E,-1',
+	
+	/* R */
+	82: 'F,-1',
+	
+	/* T */
+	84: 'G,-1',
+	
+	/* Y */
+	89: 'A,-1',
+	
+	/* U */
+	85: 'B,-1',
+	
+	/* I */
+	73: 'C,0',
+	
+	/* O */
+	79: 'D,0',
+	
+	/* P */
+	80: 'E,0',
+	
+	/* [ */
+	219: 'F,0',
+	
+	/* ] */
+	221: 'G,0',
+
+	/* A */
+	65: 'G#,0',
+
+	/* S */
+	83: 'A#,0',
+	
+	/* F */
+	70: 'C#,1',
+
+	/* G */
+	71: 'D#,1',
+
+	/* J */
+	74: 'F#,1',
+
+	/* K */
+	75: 'G#,1',
+
+	/* L */
+	76: 'A#,1',
+
+	/* Z */
+	90: 'A,0',
+
+	/* X */
+	88: 'B,0',
+
+	/* C */
+	67: 'C,1',
+
+	/* V */
+	86: 'D,1',
+
+	/* B */
+	66: 'E,1',
+
+	/* N */
+	78: 'F,1',
+
+	/* M */
+	77: 'G,1',
+	
+	/* , */
+	188: 'A,1',
+	
+	/* . */
+	190: 'B,1'
+};
+
+var _NOTES={'C':261.63,'C#':277.18,'D':293.66,'D#':311.13,'E':329.63,'F':349.23,'F#':369.99,'G':392.00,'G#':415.30,'A':440.00,'A#':466.16,'B':493.88};
+var NOTES={},NOTESLIST=["   ","---"];
+for (var oct=2;oct<8;oct++)
+	for (var note in _NOTES) {
+		var noteid=note[0]+oct+(note[1]||"-");
+		NOTES[noteid]=_NOTES[note] * Math.pow(2,oct-4);
+		NOTESLIST.push(noteid);
+	}
+
+var AUDIORANGE=[0,255];
+
+var _DOMTOVALUE={
+	"attack":{node:"attack",key:"attack"},
+	"sustain":{node:"sustain",key:"sustain"},
+	"limit":{node:"limit",key:"limit"},
+	"decay":{node:"decay",key:"decay"},
+	"release":{node:"release",key:"release"},
+	"frequency":{node:"frequency",key:"frequency"},
+	"tremoloFrequency":{node:"tremoloFrequency",key:"tremoloFrequency"},
+	"tremoloDepth":{node:"tremoloDepth",key:"tremoloDepth"},
+	"pitch":{node:"pitch",key:"pitch"},
+	"frequencyJump1onset":{node:"jump1onset",key:"frequencyJump1onset"},
+	"frequencyJump1amount":{node:"jump1amount",key:"frequencyJump1amount"},
+	"frequencyJump2onset":{node:"jump2onset",key:"frequencyJump2onset"},
+	"frequencyJump2amount":{node:"jump2amount",key:"frequencyJump2amount"},
+	"bitCrush":{node:"bitcrush",key:"bitCrush",isInt:true},
+	"bitCrushSweep":{node:"bitcrushsweep",key:"bitCrushSweep",isInt:true},
+}
+
+var source;
+function play(note) {
+	drawWave();
+	var codedata={ wave:document.getElementById("wave").value }
+	var value;
+	for (var k in _DOMTOVALUE) {
+		value=niceround(document.getElementById(_DOMTOVALUE[k].node).value,NOISERANGES[k][0],NOISERANGES[k][1],NOISEDEFAULTS[k],_DOMTOVALUE[k].isInt);
+		if (value!==undefined) codedata[k]=value;
+	}
+
+	for (var a in NOISEDEFAULTS) if (codedata[a]==undefined) codedata[a]=NOISEDEFAULTS[a];
+
+	document.getElementById("fileraw").value=JSON.stringify(codedata);
+
+	var audio=generateNoise(codedata,note?NOTES[note]:undefined);
+	playAudio(audio);
+	drawBuffer(audio.buffer);
+}
+
+var notesBook;
+
+function niceround(a,base,value,defaultvalue,isint) {
+	var ret= Math.round((base+(a/100*(value-base)))*10000)/10000;
+	if (isint) ret=Math.floor(ret);
+	if (ret==defaultvalue) return undefined; else return ret;
+}
+
+function drawWave() {
+	var wf=NOISEWAVES[document.getElementById("wave").value];
+	var cnv=document.getElementById("wavedraw");
+	cnv.height=cnv.height;
+	var ctx=cnv.getContext("2d");
+	var value=.9;
+	var cl=0;
+	ctx.moveTo(0,20);
+	for (var i=0;i<300;i++) {
+		if (i%30==0) {
+			cl=(cl+1)%2;
+			ctx.strokeStyle=cl?"#f00":"#00f";
+			ctx.stroke();
+			ctx.beginPath();
+		}
+		value=wf(value,i,30 );
+		ctx.lineTo(i, 20-(value*10));
+	}
+	ctx.stroke();
+}
+
+function drawBuffer(buf) {
+	var cnv=document.getElementById("outwav");
+	cnv.height=cnv.height;
+	if (buf) {
+		var buffer=buf.getChannelData(0);
+		var wf=NOISEWAVES[document.getElementById("outwav").value];
+		var ctx=cnv.getContext("2d");
+		ctx.strokeStyle="#0f0";
+		var prop=600/buffer.length;
+		ctx.moveTo(0,40);
+		for (var i=0;i<buffer.length;i++) {
+			ctx.lineTo (i*prop, 40-(buffer[i]*40));
+		}
+		ctx.stroke();
+	}
+}
+
+function random() {
+	if (!document.getElementById("lockwave").checked) document.getElementById("wave").selectedIndex=Math.floor(Math.random()*8);
+	if (!document.getElementById("lockattack").checked) document.getElementById("attack").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("locksustain").checked) document.getElementById("sustain").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("locklimit").checked) document.getElementById("limit").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockdecay").checked) document.getElementById("decay").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockrelease").checked) document.getElementById("release").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockfrequency").checked) document.getElementById("frequency").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("locktremolof").checked) document.getElementById("tremoloFrequency").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("locktremolod").checked) document.getElementById("tremoloDepth").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockpitch").checked) document.getElementById("pitch").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockjump1onset").checked) document.getElementById("jump1onset").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockjump1amount").checked) document.getElementById("jump1amount").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockjump2onset").checked) document.getElementById("jump2onset").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockjump2amount").checked) document.getElementById("jump2amount").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockbitcrush").checked) document.getElementById("bitcrush").value=Math.floor(Math.random()*100);
+	if (!document.getElementById("lockbitcrushsweep").checked) document.getElementById("bitcrushsweep").value=Math.floor(Math.random()*100);
+	play();
+}
+
+function load() {
+	let
+		data=JSON.parse(document.getElementById("fileload").value);
+
+	document.getElementById("wave").value=data.wave;
+	
+	for (var k in _DOMTOVALUE) {
+		let value=((data[_DOMTOVALUE[k].key]-NOISERANGES[k][0])/(NOISERANGES[k][1]-NOISERANGES[k][0]))*100;
+		document.getElementById(_DOMTOVALUE[k].node).value=value;
+	}
+
+	play();
+}
+
+function onl() {
+
+	notesBook=[];
+	var pianoObj=document.getElementById("piano");
+	pianoObj.onkeydown=function(e) {
+		var pressed=keyboard[e.keyCode],note="";
+		if (pressed) {
+			pressed=pressed.split(",");
+			note=pressed[0][0]+(octave+(pressed[1]*1))+(pressed[0][1]||"-");
+			play(note);
+			if (notesBook.length>20)
+				notesBook=notesBook.slice(notesBook.length-20,notesBook.length);
+			notesBook.push(note);
+			document.getElementById("notesBook").value=JSON.stringify(notesBook);
+		}
+		pianoObj.value=note;
+		e.preventDefault();
+		return false;
+	}
+	setOctave(0);
+	drawWave();
+}
+
+</script>

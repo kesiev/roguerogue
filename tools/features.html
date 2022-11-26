@@ -1,0 +1,408 @@
+<html>
+    <head>
+        
+        <script src="../js/arcade.js"></script>
+        
+        <script src="../js/game/resources.js"></script>
+        <script src="../js/game/stagesgenerator.js"></script>
+        <script src="../js/game/const.js"></script>
+        <script src="../js/game/functions.js"></script>
+
+    </head>
+    <body onload="onl()">
+        Read the JS Console for notifications.
+        <hr>
+        Features markdown:<br>
+        <textarea cols="120" rows="30" id="features"></textarea>
+    </body>
+</html>
+<script>
+
+function boolToText(b) {
+    return b?"1":"0";
+}
+
+function getGameplayStyle(bonus) {
+    return boolToText(bonus.setDefaultCanSquish)+
+        boolToText(bonus.setDefaultFireMode)+
+        boolToText(bonus.setDefaultFireHold)+
+        boolToText(bonus.setDefaultCanCutJump)+
+        boolToText(bonus.setDefaultCanDropDown)+
+        boolToText(bonus.setDefaultLockSide);
+}
+
+
+function powerupSignature(bonus) {
+    let keys=[];
+    for (let k in bonus)
+        keys.push(k);
+    return keys.sort().join("-");
+}
+
+function checkUndefined(root,prefix,depth) {
+    if (!depth) depth=0;
+    if (depth>5) return;
+    for (var k in root) {
+        if (root[k]===undefined)
+            console.warn(prefix+" has undefined value: "+k);
+        else if ((typeof root[k] == "object") && root[k]!==window)
+            checkUndefined(root[k],prefix+"."+k,depth+1);
+    }
+}
+
+let signatures={};
+
+function addSignature(signature,pattern) {
+    if (!signatures[signature]) {
+        signatures[signature]=pattern;
+        return false;
+    } else return signatures[signature]!==pattern;
+}
+
+
+function onl() {
+
+    let C={};
+    loadResourcesEnvironment(C);
+
+    let game = new Game({
+        resourcesPrefix:"../",
+        name:"ROGUEROGUE-FEATURES",
+        frameSkip:10,
+        fps:60,
+        width:1,
+        height:1,
+        pageBackgroundColor:"#fff",
+        backgroundColor:"#fff",
+        palette:loadResourcesPalette(C),
+        fonts:loadResourcesFonts(C),
+        images:loadResourcesImages(C)
+    },game=>{
+
+        let
+            scenes={},
+            audio=loadResourcesAudio(C);
+
+        audio.forEach(audio=>{
+            game.audio[audio.id]=audio.id;    
+        });
+
+        gameLoadConst(game,C);
+        gameLoadFunctions(game,C);
+        gameLoadStagesGenerator(game,C);
+
+        let stats={
+            minigames:0,
+            bonus:0,
+            bonusPowerups:0,
+            skins:C.PLAYERSKINS.length,
+            gameplayStyles:0,
+            cheatCodes:0,
+            secretsRooms:0,
+            giantBonuses:0,
+            specialBubbles:0,
+            letterBubbles:C.LETTERBUBBLESCOUNT,
+            stagePaletteSets:C.STAGEPALETTES.length,
+            stagePalettes:0,
+            graphicPatterns:Math.floor(game.images.walls.height/16),
+            stagePatternSets:C.STAGEPATTERNS.length,
+            stagePatterns:0,
+            dictionaryBanks:0,
+            dictionaryWords:0,
+            combinationSets:C.COMBINATIONS.length,
+            combinations:0,
+            enemyTypes:C.ENEMIES.length,
+            spriteStencils:0,
+            bonusRules:0
+        },
+        gameplayStyles={},
+        powerUps={},
+        minigames={};
+        C.BONUSES.all.forEach((bonus,id)=>{
+            let
+                gameplayStyle=getGameplayStyle(bonus);
+            
+            stats.bonus++;
+
+            if (!gameplayStyles[gameplayStyle]) {
+                gameplayStyles[gameplayStyle]=true;
+                stats.gameplayStyles++;
+            }
+
+            if (bonus.playMinigame)
+                bonus.playMinigame.forEach(minigame=>{
+                    if (!minigames[minigame]) {
+                        minigames[minigame]=true;
+                        stats.minigames++;
+                    }
+                })
+
+            // Database validation
+            if (bonus.increaseCounters)
+                if ((bonus.increaseCounters.indexOf("normalCollected") != -1)||(bonus.increaseCounters.indexOf("bonusStageCollected") != -1)) {
+                    let powerup=powerupSignature(bonus);
+                    if (bonus.increaseCounters.indexOf("bonusStageCollected") != -1) {
+                        if (powerup!="frame-increaseCounters-playAudio-points-tags")
+                            console.warn("Wrong bonus stage bonus",bonus);                        
+                    } else {
+                        if (powerup!="frame-increaseCounters-playAudio-points-tags-timer")
+                            console.warn("Wrong normal bonus",bonus);                        
+                    }
+                    if (bonus.playAudio != game.audio.pick)
+                        console.warn("Wrong audio for bonus",bonus,": must be pick");
+                } else if ((bonus.increaseCounters.indexOf("specialItemsCollected") != -1)||(bonus.increaseCounters.indexOf("yendorAmuletCollected") != -1)) {
+                    let powerup=powerupSignature(bonus);
+                    if (!powerUps[powerup]) {
+                        stats.bonusPowerups++;
+                        powerUps[powerup]=true;
+                    }
+                    if (bonus.playAudio != game.audio.powerup)
+                        console.warn("Wrong audio for bonus",bonus,": must be powerup");
+                } else {
+                    console.warn("Missing type in bonus",bonus);
+                }
+
+            if (bonus.setEndSpawnGiantBonus && !C.GIANTBONUSES[bonus.setEndSpawnGiantBonus])
+                console.warn("Bonus "+bonus.tags.join(".")+" is spawning a missing giant bonus: "+bonus.setEndSpawnGiantBonus);
+            
+            checkUndefined(bonus,"Bonus "+bonus.tags.join("."));
+
+        })
+
+        let cheatSounds={};
+        C.CHEATS.forEach((cheat,id)=>{
+            stats.cheatCodes++;
+
+            // Integrity check
+
+            if (cheatSounds[cheat.playAudio])
+                console.warn("Cheat sound used multiple times",cheat.playAudio);
+            else
+                cheatSounds[cheat.playAudio]=true;
+
+            C.CHEATS.forEach((subcheat,sid)=>{
+                if (cheat !== subcheat) {
+                    if (subcheat.letters.indexOf(cheat.letters) != -1)
+                        console.error("Cheat "+id+" sequence clashes with cheat "+sid+" sequence: "+cheat.letters+" vs. "+subcheat.letters);
+                }
+            });
+            checkUndefined(cheat,"Cheat "+id);
+            
+        })
+
+        let
+            cheatExplained={},
+            statues={};
+
+        C.SECRETS.forEach((secret,id)=>{
+            stats.secretsRooms++;
+
+            // Integrity check
+
+            if (secret.statue)
+                if (statues[secret.statue])
+                    console.warn("Secret room statue used multiple times",secret.statue);
+                else
+                    statues[secret.statue]=true;
+
+            if (cheatExplained[secret.text[2]])
+                console.warn("Cheat code explained by multiple secrets rooms",secret.text[2]);
+            else
+                cheatExplained[secret.text[2]]=true;
+
+            if (secret.text.length!=3) console.warn("Secret room "+id+" lines number is wrong: "+secret.text.length);
+                secret.text.forEach(line=>{
+                    if (line.length>22)
+                        console.warn("Secret room "+id+" text too long: "+line);
+                })
+            
+        })
+
+        // Check bonuses
+        for (var k in C.BONUSESRULES) {
+            stats.bonusRules++;
+            let rules=C.BONUSESRULES[k];
+            rules.forEach((rule,id)=>{
+                if (!C.BONUSES[rule.thenScheduleBonus] || (C.BONUSES[rule.thenScheduleBonus].length == 0))
+                    console.warn("Rule "+k+"["+id+"] is spawning a missing bonus: "+rule.thenScheduleBonus);
+            });
+            checkUndefined(rules,"Rule "+k);
+        }
+
+        // Check staff roll
+        C.STAFFROLL.forEach((line,id)=>{
+            if (line) {
+                if (!game.palette[line[0]])
+                    console.warn("Staff roll line "+id+" has bad color: "+line[0]);
+                if (line[1].length>30)
+                    console.warn("Staff roll line "+id+" is too long: "+line[1]);
+            }
+            checkUndefined(line,"Staff roll line "+id);
+        })
+
+        C.GIANTBONUSES.all.forEach((bonus,id)=>{
+            stats.giantBonuses++;
+            checkUndefined(bonus,"Giant bonus "+bonus.tags.join("."));
+        })
+
+        if (C.BONUSDIGITS.length!=10)
+            console.error("Digit bonus length is not 10: "+C.BONUSDIGITS.length);
+
+        C.BONUSDIGITS.forEach((digit,d)=>{
+            if (!C.BONUSES[digit])
+                console.error("Missing bonus for digit "+d+": "+digit);
+            else if (C.BONUSES[digit].length!=1)
+                console.error("Digit "+d+" bonus "+digit+" count is not 1: "+C.BONUSES[digit].length);
+
+        });
+
+        for (var k in C.BONUSLORESTAGE) {
+            k=k*1;
+            let bonus=C.BONUSLORESTAGE[k];
+            if ((k<0) || (k>C.LASTSTAGE))
+                console.error("Invalid lore stage position: "+k);
+            if (!C.BONUSES[bonus])
+                console.error("Missing bonus for lore position "+k+": "+bonus);
+            else if (C.BONUSES[bonus].length!=1)
+                console.error("Lore position "+k+" bonus "+bonus+" count is not 1: "+C.BONUSES[bonus].length);
+        }
+
+        C.BONUSTIME.forEach((set,p)=>{
+            if (set&&((p==0)||(p>C.PLAYERSCOUNT)))
+                console.error("Bonus time set for "+p+" players must be 0: "+set);
+            else if (!set&&((p>0)&&(p<=C.PLAYERSCOUNT)))
+                console.error("Bonus time not set for "+p+" players must be set: "+set);
+            else if (set)
+                set.forEach((bonus,k)=>{
+                    if (!C.BONUSES[bonus])
+                        console.error("Missing bonus for "+p+" players bonus time position "+k+": "+bonus);
+                    else if (C.BONUSES[bonus].length!=1)
+                        console.error(p+" players bonus time position "+k+" bonus "+bonus+" count is not 1: "+C.BONUSES[bonus].length);
+                })
+        })
+
+        for (let k in C.SPECIALBUBBLES) {
+            stats.specialBubbles++;
+        }
+
+        let palettes={};
+        C.STAGEPALETTES.forEach((set,id)=>{
+            set.forEach((color,cid)=>{
+                let signature=color.join("-");
+                if (palettes[signature])
+                    console.warn("Duplicated palette",signature);
+                else
+                    palettes[signature]=true;
+                stats.stagePalettes++;
+            })
+        });
+
+
+        C.STAGEPATTERNS.forEach((set,setid)=>{
+
+            console.log("Checking "+set.length+" pattern(s) from set "+setid);
+
+            set.forEach(pattern=>{
+                    let
+                        signature="",
+                        found=false;
+                    pattern.forEach(line=>signature+=line+"\n");
+                    signature=signature.substr(0,signature.length-1);
+                    found|=addSignature(signature,pattern);
+
+                    signature="";
+                    pattern.forEach(line=>{signature+=line.split("").reverse().join("")+"\n"});
+                    signature=signature.substr(0,signature.length-1);
+                    found|=addSignature(signature,pattern);
+
+                    signature="";
+                    pattern.forEach(line=>signature=line+"\n"+signature);
+                    signature=signature.substr(0,signature.length-1);
+                    found|=addSignature(signature,pattern);
+
+                    signature="";
+                    pattern.forEach(line=>{signature=line.split("").reverse().join("")+"\n"+signature});
+                    signature=signature.substr(0,signature.length-1);
+                    found|=addSignature(signature,pattern);
+
+                    if (found)
+                        console.warn("Pattern",pattern,"already exists");
+
+                    stats.stagePatterns++;
+
+                });
+        });
+
+        let uniqwords={};
+        for (let k in C.DICTIONARIES) {
+            stats.dictionaryBanks++;
+            C.DICTIONARIES[k].forEach((word,id)=>{
+                if (uniqwords[word])
+                    console.warn("Duplicated word",word);
+                else
+                    uniqwords=true;
+                if (word!=word.replace(/[^A-Z]/g,""))
+                    console.warn("Invalid letters in word",word);
+                if (word.length!=C.DICTIONARIES[k][0].length)
+                    console.warn("Invalid word length",word,"vs.",C.DICTIONARIES[k][0].length);
+                stats.dictionaryWords++;
+            })
+        }
+
+        C.COMBINATIONS.forEach((set,id)=>{
+            set.forEach((subset,sid)=>{
+                subset.forEach((combination,cid)=>{
+                    stats.combinations++;
+                });
+            })
+        });
+
+        C.SPRITESTENCILS.forEach((set,id)=>{
+            if (set[1])
+                stats.spriteStencils+=set[1].length;
+            else
+                stats.spriteStencils+=set[0].frames.length;
+        });
+
+        // Render
+
+        let markdown="";
+        function rounder(value) {
+            if ((value<11)||(value % 10 == 0))
+                return value;
+            else
+                return (Math.floor(value/10)*10)+"+";
+        }
+
+        markdown+=
+            "   - "+rounder(stats.enemyTypes)+" enemy types\n"+
+            "   - "+rounder(stats.gameplayStyles)+" gameplay styles\n"+
+            "   - "+rounder(stats.bonus)+" bonuses\n"+
+            "   - "+rounder(stats.giantBonuses)+" giant bonuses\n"+
+            "   - "+rounder(stats.bonusPowerups)+" power-ups\n"+
+            "   - "+rounder(stats.minigames)+" minigames\n"+
+            "   - "+rounder(stats.bonusRules)+" secret counters\n"+
+            "   - "+rounder(stats.cheatCodes)+" secret codes\n"+
+            "   - "+rounder(stats.secretsRooms)+" secret rooms\n"+
+            "   - "+rounder(stats.skins)+" character skins\n"+
+            "   - "+rounder(stats.letterBubbles)+" letter bubbles\n"+
+            "   - "+rounder(stats.specialBubbles)+" special bubbles\n"+
+            "   - The stage generator features:\n"+
+            "     - "+rounder(stats.combinations)+" layouts split into "+rounder(stats.combinationSets)+" sets\n"+
+            "     - "+rounder(stats.stagePatterns)+" stage tile patterns split into "+rounder(stats.stagePatternSets)+" sets\n"+
+            "     - "+rounder(stats.dictionaryWords)+" words dictionary split into "+rounder(stats.dictionaryBanks)+" word banks\n"+
+            "     - "+rounder(stats.graphicPatterns)+" graphic patterns mutated by "+rounder(stats.stagePalettes)+" color palettes split into "+rounder(stats.stagePatternSets)+" sets\n"+
+            "     - "+rounder(stats.spriteStencils)+" image tile patterns generated from in-game graphics\n"+
+            "";
+
+        document.getElementById("features").value=markdown;
+
+        console.log(stats);
+
+    });
+
+    game.start();
+
+}
+
+</script>
