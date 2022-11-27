@@ -20,7 +20,7 @@
 
 The little green and blue Rogues have to steal the [Yendor's Amulet](https://en.wikipedia.org/wiki/NetHack) from the depths of a mysterious cave to make their wishes come true... or not?
 
-The game 100-stages set is procedurally generated using a different seed every week, so you've from Monday to Sunday days to clear it. Every run you've 4 lives and 2 credits available but the game will also give you an extra credit every week you come back playing.
+The game 100-stages set is procedurally generated using a different seed every week, so you've from Monday to Sunday days to clear it. Every run you've 3 lives and 2 credits available but the game will also give you an extra credit every week you come back playing.
 
 <div align="center" style="margin:60px 0">
     <p><img src="markdown/shot1.png"></p>
