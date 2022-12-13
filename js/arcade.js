@@ -179,6 +179,17 @@ function Game(settings, scenesloader) {
         passiveSupported = false;
     }
 
+    // Fullscreen
+
+    let setFullScreen=()=>{
+        if (displayNode.requestFullscreen)
+            displayNode.requestFullscreen();
+        else if (displayNode.webkitRequestFullscreen)
+            displayNode.webkitRequestFullscreen();
+        else if (displayNode.msRequestFullscreen)
+            displayNode.msRequestFullscreen();
+    }
+
     // Controls
 
     let
@@ -296,6 +307,8 @@ function Game(settings, scenesloader) {
     let loadImages = (cb) => {
 
         if (imagesToLoad.length) {
+
+            setLoadingMessage("Loading images ("+imagesToLoad.length+" left)")
             
             let image = imagesToLoad.shift();
 
@@ -351,11 +364,14 @@ function Game(settings, scenesloader) {
                     }
                 }
 
-                loadImages(cb);
+                delay(()=>loadImages(cb));
                 
             });
    
-        } else cb();
+        } else {
+            setLoadingMessage();
+            cb();
+        }
     }
 
     let loadImage = (url,cb) => {
@@ -519,9 +535,12 @@ function Game(settings, scenesloader) {
     if (settings.musicVolume==undefined) settings.musicVolume=0.3;
     
     let loadAudio=(cb,second)=>{
-        if (!audioToLoad || !audioToLoad.length)
+        if (!audioToLoad || !audioToLoad.length) {
+            setLoadingMessage();
             cb();
-        else {
+        } else {
+
+            setLoadingMessage("Loading audio ("+audioToLoad.length+" left)")
 
             if (!second) this.audioInitialize();
 
@@ -534,7 +553,7 @@ function Game(settings, scenesloader) {
                     properties:sample
                 };
 
-                loadAudio(cb,true);
+                delay(()=>loadAudio(cb,true));
 
             } else if (sample.sam) {
 
@@ -551,7 +570,7 @@ function Game(settings, scenesloader) {
                     buffer:soundBuffer,
                     properties:sample
                 };
-                loadAudio(cb,true);
+                delay(()=>loadAudio(cb,true));
 
             } else if (sample.mod) {
 
@@ -579,7 +598,7 @@ function Game(settings, scenesloader) {
                     mod:this.audio[sample.like].mod,
                     properties:sample
                 };
-                loadAudio(cb,true);
+                delay(()=>loadAudio(cb,true));
 
             } else if (sample.noise) {
 
@@ -645,7 +664,7 @@ function Game(settings, scenesloader) {
                     buffer:buffer,
                     properties:sample
                 };
-                loadAudio(cb,true);
+                delay(()=>loadAudio(cb,true));
 
             } else {
 
@@ -1711,6 +1730,8 @@ function Game(settings, scenesloader) {
 
     let loadFonts = (cb) => {
         if (fontsToLoad.length) {
+
+            setLoadingMessage("Loading fonts ("+fontsToLoad.length+" left)")
             
             let font = fontsToLoad.shift();
 
@@ -1801,11 +1822,16 @@ function Game(settings, scenesloader) {
                     outline:outlineFont
                 };
 
-                loadFonts(cb);
+                delay(()=>{
+                    loadFonts(cb);
+                })
                 
             });
    
-        } else cb();
+        } else {
+            setLoadingMessage();
+            cb();
+        }
     };
 
     this.print = (font, color, text, x, y, into) => {
@@ -1981,10 +2007,16 @@ function Game(settings, scenesloader) {
             document.body.style.backgroundColor = settings.pageBackgroundColor;
         },
         configRow=0,
+        loadingSpan=0,
         guiPanel=0,
         guiKeyMap=[],
         guiAudioEnabled=0,
         guiCrtEnabled=0;
+
+    let setLoadingMessage=(message)=>{
+        if (loadingSpan)
+            loadingSpan.innerHTML=message||"";
+    }
 
     let updateConfigurationGui=()=>{
         guiKeyMap.forEach((input,id)=>{
@@ -2096,6 +2128,15 @@ function Game(settings, scenesloader) {
         return image;
     }
 
+    let delay=(cb)=>{
+        setTimeout(cb,10);
+    }
+
+    this.scheduleLoadingMessage=(message,cb)=>{
+        setLoadingMessage(message);
+        delay(cb);
+    }
+
     this.configure =(node)=>{
         preparePage();
         prepareConfig();
@@ -2196,11 +2237,10 @@ function Game(settings, scenesloader) {
         startButton.style.color=settings.pageBackgroundColor;
         startButton.onclick=()=>{
             guiPanel.innerHTML="";
-            let
-                image=addConfigImage(guiPanel),
-                span=createSpan(guiPanel,"Loading...");
-            span.style.display="block";
-            span.style.textAlign="center";
+            let image=addConfigImage(guiPanel);
+            loadingSpan=createSpan(guiPanel,"");
+            loadingSpan.style.display="block";
+            loadingSpan.style.textAlign="center";
             image.className="floating";
 
             credits.parentNode.removeChild(credits);
@@ -2257,6 +2297,7 @@ function Game(settings, scenesloader) {
     // Game start
 
     let
+        displayNode,
         canvas,
         doResize,
         maxScale=settings.maxScale;
@@ -2291,6 +2332,8 @@ function Game(settings, scenesloader) {
     }
 
     this.start = ()=>{
+        displayNode = document.createElement("div");
+        document.body.appendChild(displayNode);
         this.audioEnabled=settings.audioEnabled===undefined?true:settings.audioEnabled;
         this.musicEnabled=settings.musicEnabled===undefined?true:settings.musicEnabled;
         this.effectsEnabled=settings.effectsEnabled===undefined?true:settings.effectsEnabled;  
@@ -2316,36 +2359,50 @@ function Game(settings, scenesloader) {
         loadAudio(()=>{
             loadFonts(()=>{
                 loadImages(()=>{
-                    if (guiPanel) guiPanel.parentNode.removeChild(guiPanel);
-                    this.scenes = scenesloader(this);
-                    if (this.scenes && this.scenes.default) {
-                        preparePage();
-                        this.watchKeys(settings.watchKeys||[]);
-                        window.addEventListener("gamepadconnected", (e) => {
-                            useGamepads=true;
-                            if (e.gamepad.buttons[0]) gamepadPressedMode=typeof e.gamepad.buttons[0]=="object";
-                        });            
-                        canvas = this.newImage(settings.width, settings.height);
-                        canvas.node.style.backgroundColor = settings.backgroundColor;
-                        document.body.appendChild(canvas.node);
-                        document.body.onkeydown = keydown;
-                        document.body.onkeyup = keyup;
-                        if (settings.crt) {
-                            this.clearScreen = () => {
-                                this.fillRect(this.palette[0],0,0,canvas.width,canvas.height);
+                    this.scheduleLoadingMessage("Hold on!",()=>{
+                        if (guiPanel) {
+                            guiPanel.parentNode.removeChild(guiPanel);
+                            loadingSpan=0;
+                        }
+                        this.scenes = scenesloader(this);
+                        if (this.scenes && this.scenes.default) {
+                            preparePage();
+                            document.body.onmousedown=function(e) {
+                                setFullScreen();
+                                return false;
                             }
-                            renderer = initRenderer(canvas.node);
-                        } else {
-                            doResize=10;
-                            window.onresize=()=>{
+                            document.body.ontouchstart=function(e) {
+                                setFullScreen();
+                                e.preventDefault();
+                                return false;
+                            }
+                            this.watchKeys(settings.watchKeys||[]);
+                            window.addEventListener("gamepadconnected", (e) => {
+                                useGamepads=true;
+                                if (e.gamepad.buttons[0]) gamepadPressedMode=typeof e.gamepad.buttons[0]=="object";
+                            });            
+                            canvas = this.newImage(settings.width, settings.height);
+                            canvas.node.style.backgroundColor = settings.backgroundColor;
+                            displayNode.appendChild(canvas.node);
+                            document.body.onkeydown = keydown;
+                            document.body.onkeyup = keyup;
+                            if (settings.crt) {
+                                this.clearScreen = () => {
+                                    this.fillRect(this.palette[0],0,0,canvas.width,canvas.height);
+                                }
+                                renderer = initRenderer(canvas.node);
+                            } else {
                                 doResize=10;
+                                window.onresize=()=>{
+                                    doResize=10;
+                                    resizeScreen();
+                                }
                                 resizeScreen();
                             }
-                            resizeScreen();
+                            this.setScene(this.scenes.default);
+                            frame();
                         }
-                        this.setScene(this.scenes.default);
-                        frame();
-                    }
+                    })
                 })
             })
         });

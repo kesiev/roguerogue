@@ -62,6 +62,7 @@ function gameRun() {
             C.setHighStage(game,0,1,false);
         else
             C.setHighStage(game,0,game.loadData("highstage")||1,!!game.loadData("highstagemode"));
+        
         C.STAGES=stagesGenerator(game,C.SEED,C);
 
         // Scenes
