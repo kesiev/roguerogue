@@ -710,13 +710,17 @@ function Game(settings, scenesloader) {
         settings.volume=vol;
     }
 
+    this.setAudioVolume=(audio,vol)=>{
+        if (audio&&audioPlaying[audio.id]&&audioPlaying[audio.id].gain)
+            audioPlaying[audio.id].gain.gain.value=vol;
+    }
+
     this.setMusicVolume=(vol)=>{
         settings.musicVolume=vol;
-        if (XMPlayer&&XMPlayer.gainNode) {
+        if (window.XMPlayer&&XMPlayer.gainNode) {
             XMPlayer.gainNode.gain.value=0.1*vol;
         }
-        if (musicPlaying&&audioPlaying[musicPlaying]&&audioPlaying[musicPlaying].gain)
-            audioPlaying[musicPlaying].gain.gain.value=vol;
+        this.setAudioVolume(musicPlaying,vol);
     }
 
     this.playAudio=(sample,loop,volume,force)=>{
@@ -2381,7 +2385,7 @@ function Game(settings, scenesloader) {
                                 useGamepads=true;
                                 if (e.gamepad.buttons[0]) gamepadPressedMode=typeof e.gamepad.buttons[0]=="object";
                             });            
-                            canvas = this.newImage(settings.width, settings.height);
+                            this.canvas = canvas = this.newImage(settings.width, settings.height);
                             canvas.node.style.backgroundColor = settings.backgroundColor;
                             displayNode.appendChild(canvas.node);
                             document.body.onkeydown = keydown;
