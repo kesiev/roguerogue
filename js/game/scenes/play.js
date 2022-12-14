@@ -41,10 +41,12 @@ function gameLoadPlay(game,scenes,C) {
                                         C.MEMORY.continueTime--;
                                         if (!C.MEMORY.credits) {
                                             game.stopMusic();
+                                            C.setSanityIntensity(game,scene,1);
                                             C.gotoScene(game,scene,game.scenes.debrief);
                                         } else game.playAudio(game.audio.continue);
                                     } else {
                                         game.stopMusic();
+                                        C.setSanityIntensity(game,scene,1);
                                         C.gotoScene(game,scene,game.scenes.debrief);
                                     }
                                 }
@@ -56,7 +58,8 @@ function gameLoadPlay(game,scenes,C) {
                                 if (!scene.minigame && !scene.nodarkness) {
                                     game.fillRect(game.palette[0],0,0,sprite.darkness.width,sprite.darkness.height,sprite.darkness);
                                     game.getSpritesWithTag("bright").forEach(light=>{
-                                        game.clearCircle(light.x+light.properties.brightnessX,light.y+light.properties.brightnessY-16,light.properties.brightness+Math.sin(sprite.darknessTimer)*3,sprite.darkness);
+                                        if (light.properties.brightness)
+                                            game.clearCircle(light.x+light.properties.brightnessX,light.y+light.properties.brightnessY-16,light.properties.brightness+Math.sin(sprite.darknessTimer)*3,sprite.darkness);
                                     })
                                     game.drawSimpleImage(sprite.darkness,0,16);
                                 }
@@ -423,9 +426,11 @@ function gameLoadPlay(game,scenes,C) {
                 C.goToStage(game,scene,C.STAGES[C.MEMORY.stage]);
             C.resetContinueTimer(game,scene);
             if (C.DEBUG.enabled) {
-                if (C.DEBUG.treasureEnding)
+                if (C.DEBUG.treasureEnding) {
+                    C.setSanityIntensity(game,scene,1);
                     C.gotoScene(game,scene,game.scenes.treasureEnding);
-                else if (C.DEBUG.yendorEnding) {
+                } else if (C.DEBUG.yendorEnding) {
+                    C.setSanityIntensity(game,scene,1);
                     C.MEMORY.players[0].yendorAmuletCollected=true;
                     C.gotoScene(game,scene,game.scenes.yendorEnding);
                 }
@@ -456,6 +461,7 @@ function gameLoadPlay(game,scenes,C) {
                                 break;
                             }
                             case 1:{
+                                C.setSanityIntensity(game,scene,1);
                                 C.gotoScene(game,scene,game.scenes.gameover);
                                 break;
                             }
@@ -713,7 +719,9 @@ function gameLoadPlay(game,scenes,C) {
                         game.getSpritesWithTagCopy("tostart").forEach(sprite=>{
                             sprite.removeTag("tostart");
                             sprite.setState(sprite.states.default);
-                        })
+                        });
+                        if (C.MEMORY.hauntedMode)
+                            game.addNewSprite(scene.sprites.hauntingDeath);
                     }
                 } else if (C.MEMORY.stageEnded) {
                     scene.timer++;
@@ -733,6 +741,7 @@ function gameLoadPlay(game,scenes,C) {
                         if (C.MEMORY.treasureMode) {
                             if (C.MEMORY.stage>=C.STAGESCOUNT) {
                                 game.stopMusic();
+                                C.setSanityIntensity(game,scene,1);
                                 C.allPlayersAddScore(game,scene,C.BONUSTREASUREENDING);
                                 if (C.MEMORY.cheats.disableEndings)
                                     C.gotoScene(game,scene,game.scenes.staffroll);
@@ -743,6 +752,7 @@ function gameLoadPlay(game,scenes,C) {
                         } else {
                             if (C.MEMORY.stage>=C.LASTSTAGE) {
                                 game.stopMusic();
+                                C.setSanityIntensity(game,scene,1);
                                 C.allPlayersAddScore(game,scene,C.BONUSYENDORENDING);
                                 if (C.MEMORY.cheats.disableEndings)
                                     C.gotoScene(game,scene,game.scenes.staffroll);
@@ -824,32 +834,19 @@ function gameLoadPlay(game,scenes,C) {
                         
                         // Since it freezes the stage stage timer check should happen for last
 
-                        if (C.MEMORY.stageTimer == scene.stage.stageTimer) {
-                            game.stopMusic();
-                            C.MEMORY.hurryUp=C.HURRYUPTIMER;
-                            C.increaseAllPlayersCounter(game,scene,"hurryUpAppeared");
-                            C.freezeStage(game,scene,true);
-                        } else if (C.MEMORY.stageTimer == scene.stage.deathTimer) {
-                            game.stopMusic();
-                            game.playAudio(game.audio.deathappear);
-                            scene.deathAppear=C.DEATHAPPEARTIMER;
-                            C.freezeStage(game,scene,true);
-                            game.getSpritesWithTag("player").forEach((player,p)=>{
-                                let death=game.addNewSprite(scene.sprites.death);
-                                death.follow=player.playerId;
-                                switch (player.playerId) {
-                                    case 0:{
-                                        death.setX(16);
-                                        break;
-                                    }
-                                    case 1:{
-                                        death.setX(C.SCREENWIDTH-32);
-                                        death.setFlipX(true);
-                                        break;
-                                    }
-                                }
-                            })
-                        }
+                        if (!C.MEMORY.hauntedMode)
+                            if (C.MEMORY.stageTimer == scene.stage.stageTimer) {
+                                game.stopMusic();
+                                C.MEMORY.hurryUp=C.HURRYUPTIMER;
+                                C.increaseAllPlayersCounter(game,scene,"hurryUpAppeared");
+                                C.freezeStage(game,scene,true);
+                            } else if (C.MEMORY.stageTimer == scene.stage.deathTimer) {
+                                game.stopMusic();
+                                game.playAudio(game.audio.deathappear);
+                                scene.deathAppear=C.DEATHAPPEARTIMER;
+                                C.freezeStage(game,scene,true);
+                                C.spawnDeath(game,scene,scene.sprites.death);
+                            }
                     
                     }
 
@@ -861,9 +858,10 @@ function gameLoadPlay(game,scenes,C) {
 
                     } else if (toclearCount==0) {
 
+                        C.MEMORY.stageEnded = true;
+
                         C.resetStageTimer(game,scene);
                         scene.timer = 1;
-                        C.MEMORY.stageEnded = true;
                         C.MEMORY.freezeEnemies=0;
                         C.MEMORY.scheduledBonusesTimer=C.SPAWNBONUSTIMER;
 
@@ -951,7 +949,27 @@ function gameLoadPlay(game,scenes,C) {
                 game.print(game.fonts.normal.outline,1,"GIVE UP",101,125);
                 game.drawSimpleCell(game.cells.lives,scene.pausedsymbol,85+Math.sin(scene.pausedtimer/C.ONESEC*3.14)*5,108+(scene.pausedoption*18));
             }
-            
+            if (C.MEMORY.glitchIntensity)
+                for (let i=0;i<10;i++) {
+                    if (C.RND.randomBool(C.MEMORY.glitchIntensity)) {
+                        let dx,dy,x,y,width,height;
+                        dx=C.RND.randomInteger(32);
+                        dy=C.RND.randomInteger(28);
+                        if (C.RND.randomBool(0.5)) {
+                            x=C.RND.randomInteger(32);
+                            y=C.RND.randomInteger(27);
+                            width=C.RND.randomInteger(32-x);
+                            height=2;
+                        } else {
+                            x=C.RND.randomInteger(31);
+                            y=C.RND.randomInteger(28);
+                            width=2;
+                            height=C.RND.randomInteger(28-y);
+                        }
+                        game.drawPartImage(game.canvas,dx*8,dy*8,x*8,y*8,width*8,height*8);
+                    }
+                }
+                
         }
     };
 

@@ -21,7 +21,9 @@ function gameLoadConst(game,C) {
         cheatNinja="UUDDLRLRBBAA",
         cheatCleaner="URULDRDLBABA",
         cheatMarine="ABABBBABBAD",
-        cheatPoison="ABAUDU";
+        cheatPoison="ABAUDU",
+        cheatDemon="UBDAUBDA",
+        cheatDarkDemon="UADBUADB";
 
     C.STAFFROLL=[
         [ 5, "ROGUE ROGUE" ],
@@ -87,6 +89,8 @@ function gameLoadConst(game,C) {
         { letters:cheatCleaner, setTitle:"LEARNING AT", set:{ scheduleBonus:["skincleaner"] }, playAudio:game.audio.vacuumalarm },
         { letters:cheatMarine, setTitle:"WARRIORS OF", set:{ scheduleBonus:["skinmarine"] }, playAudio:game.audio.shotgunreload },
         { letters:cheatPoison, setTitle:"UNTOLD WORDS OF", set:{ scheduleBonus:["poison"] }, playAudio:game.audio.poison },
+        { letters:cheatDemon, setTitle:"CURSED", set:{ scheduleBonus:["demon"] }, playAudio:game.audio.whitenoise },
+        { letters:cheatDarkDemon, setTitle:"LJHGBIUBICKDFHOINMUPOIUBRYDKNHIOIOUTVTI", set:{ scheduleBonus:["darkdemon"] }, playAudio:game.audio.whitenoise },
     ];
 
     C.SECRETS=[
@@ -229,6 +233,20 @@ function gameLoadConst(game,C) {
                 "THE TRICK IS TO",
                 "HOLD THEM BACK",
                 cheatPoison
+            ]
+        },{
+            statue:0,
+            text:[
+                "A BRIGHT GIFT FOR ME",
+                "A DEADLY GIFT FOR YOU",
+                cheatDemon
+            ]
+        },{
+            statue:0,
+            text:[
+                "I HAD GLITCHPHOBIA",
+                "THEN IT DISAPPEARED",
+                cheatDarkDemon
             ]
         }
     ];
@@ -521,6 +539,9 @@ function gameLoadConst(game,C) {
     C.DEATHSPEED=2;
     C.DEATHSPEEDINCREASE=0.2;
     C.DEATHWAIT=C.ONESEC*2;
+    C.HAUNTINGDEATHSPEED=0.1;
+    C.HAUNTINGDEATHSPEEDTIMER=C.ONESEC*3;
+    C.HAUNTINGDEATHSPEEDINCREASE=0.05;
     C.HURRYUPTIMER=C.ONESEC*2;
     C.DEATHAPPEARTIMER=C.ONESEC*1;
     C.HURRYUPBLINKSPEED=2;
@@ -996,6 +1017,9 @@ function gameLoadConst(game,C) {
             { tags:["skin","skincleaner"], timer:C.BONUSTIMER, setPlayerSkin:8, setEndingSet:"cleanerending", setDefaultCanSquish:false, setDefaultFireMode:6, setDefaultFireHold:true, setDefaultCanCutJump:false, setDefaultCanDropDown:true, setDefaultLockSide:true },
             { tags:["marineending","skin","skinmarine"], timer:C.BONUSTIMER, setPlayerSkin:9, setEndingSet:"marineending", setDefaultCanSquish:false, setDefaultFireMode:7, setDefaultFireHold:false, setDefaultCanCutJump:false, setDefaultCanDropDown:true, setDefaultLockSide:false },
             { tags:["poison"], timer:C.BONUSTIMER, playAudio:game.audio.powerup, setDefaultBubbleType:"poison" },
+            { tags:["demon"], timer:C.BONUSTIMER, points:40000, setHauntedMode:true, setEndingSet:"demon" },
+            { tags:["darkdemon"], timer:C.BONUSTIMER, points:40000, setHauntedMode:true, setDarkness:true, setEndingSet:"darkdemon" },
+
         ]
     };
 

@@ -10,9 +10,10 @@ let loadResourcesEnvironment=(C)=>{
         // weakBoss:true,
         // shortGame:true,
         // midGame:true,
-        // cheats:{
-        //     // classicMode:true
-        // },
+        cheats:{
+            // classicMode:true
+			// hauntedMode:true
+        },
         // startingLives:0,
         // skin:9,
         // darkness:true,
@@ -23,7 +24,7 @@ let loadResourcesEnvironment=(C)=>{
         // defaultFiringAnimation:"fireFaster",
         // defaultCanSquish:true,
         // defaultCanCutJump:true,
-        // bonus:["skincleaner"],
+        // bonus:["darkdemon"],
         // attractMode:true,
         // debrief:true,
         // tutorial:true,
@@ -1993,8 +1994,8 @@ let loadResourcesAudio=(C)=>{
         {id:"vacuumalarm",noise:{"wave":"saw","attack":0.003,"sustain":0.096,"decay":0.072,"release":0.096,"frequencyJump1onset":0.5,"frequencyJump1amount":-0.24,"bitCrush":0,"bitCrushSweep":0,"limit":0.6,"frequency":850,"tremoloFrequency":0,"tremoloDepth":0,"frequencyJump2onset":0,"frequencyJump2amount":0,"pitch":0}},
         {id:"shotgunfire",noise:{"wave":"whitenoise","attack":0.006,"sustain":0.132,"decay":0.048,"release":0.324,"frequency":1465,"tremoloFrequency":12.5,"tremoloDepth":0.92,"pitch":-0.0013,"bitCrush":0,"bitCrushSweep":0,"limit":0.6,"frequencyJump1onset":0,"frequencyJump1amount":0,"frequencyJump2onset":0,"frequencyJump2amount":0}},
         {id:"shotgunempty",noise:{"wave":"whitenoise","attack":0.003,"sustain":0.024,"decay":0.018,"release":0.024,"frequency":1600,"pitch":-0.0004,"bitCrush":0,"bitCrushSweep":0,"limit":0.6,"tremoloFrequency":0,"tremoloDepth":0,"frequencyJump1onset":0,"frequencyJump1amount":0,"frequencyJump2onset":0,"frequencyJump2amount":0}},
-        {id:"shotgunreload",noise:{"wave":"whitenoise","attack":0.009,"sustain":0.148,"decay":0.006,"release":0.028,"frequency":1420,"pitch":-0.0015,"frequencyJump1onset":0.48,"frequencyJump1amount":0.92,"bitCrush":0,"bitCrushSweep":0,"limit":0.6,"tremoloFrequency":0,"tremoloDepth":0,"frequencyJump2onset":0,"frequencyJump2amount":0}}
-    
+        {id:"shotgunreload",noise:{"wave":"whitenoise","attack":0.009,"sustain":0.148,"decay":0.006,"release":0.028,"frequency":1420,"pitch":-0.0015,"frequencyJump1onset":0.48,"frequencyJump1amount":0.92,"bitCrush":0,"bitCrushSweep":0,"limit":0.6,"tremoloFrequency":0,"tremoloDepth":0,"frequencyJump2onset":0,"frequencyJump2amount":0}},
+		{id:"whitenoise",noise:{"wave":"whitenoise","attack":0.3,"sustain":0.4,"decay":0.3,"release":0.4,"frequency":1600,"tremoloFrequency":10.5,"tremoloDepth":0.2,"bitCrush":0,"bitCrushSweep":0,"limit":0.6,"frequencyJump1onset":0,"frequencyJump1amount":0,"frequencyJump2onset":0,"frequencyJump2amount":0,"pitch":0}}
     ];
 }
 

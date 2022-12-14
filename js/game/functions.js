@@ -265,6 +265,41 @@ function gameLoadFunctions(game,C) {
             sprite.setY(232+sprite.y);
     }
 
+    C.setSanityIntensity=(game,scene,intensity)=>{
+        if (intensity<0) intensity=0;
+        if (intensity>1) intensity=1;
+        C.MEMORY.glitchIntensity=intensity;
+        game.setMusicVolume(0.3*intensity);
+        if (intensity == 1) {
+            if (!game.audioIsEnded(game.audio.whitenoise))
+                game.stopAudio(game.audio.whitenoise);
+        } else {
+            let volume=0.9-0.9*intensity;
+            if (game.audioIsEnded(game.audio.whitenoise))
+                game.playAudio(game.audio.whitenoise,true,volume);
+            else
+                game.setAudioVolume(game.audio.whitenoise,volume);
+        }
+    }
+
+    C.spawnDeath=(game,scene,deathtype)=>{
+        game.getSpritesWithTag("player").forEach((player,p)=>{
+            let death=game.addNewSprite(deathtype);
+            death.follow=player.playerId;
+            switch (player.playerId) {
+                case 0:{
+                    death.setX(16);
+                    break;
+                }
+                case 1:{
+                    death.setX(C.SCREENWIDTH-32);
+                    death.setFlipX(true);
+                    break;
+                }
+            }
+        })
+    }
+
     C.spawnSpecialBubble=(game,scene,sprite,model,side)=>{
         let bubble = game.addNewSprite(scene.sprites.largeBubble,sprite.x,sprite.y);
         bubble.onBubblePopped = model.onBubblePopped;
@@ -467,8 +502,7 @@ function gameLoadFunctions(game,C) {
         C.setEnemiesAngry(game,scene,false);
         game.playMusic(C.MEMORY.stageMusic);
         game.getSpritesWithTagCopy("death").forEach(death=>{
-            game.addNewSprite(scene.sprites.disappear,death.x,death.y);
-            death.remove();
+            death.onReset(game,scene,death);
         });
     }
 
@@ -666,7 +700,8 @@ function gameLoadFunctions(game,C) {
                 C.MEMORY.skipStages=C.LASTSTAGE-C.MEMORY.stage-1;
             }
         }
-        if (C.MEMORY.skipStages<0)  C.MEMORY.skipStages=0;
+        if (C.MEMORY.skipStages<=0) C.MEMORY.skipStages=0;
+        else C.setSanityIntensity(game,scene,1);
     }
 
     C.pauseGame=(game,scene,playerid)=>{
@@ -710,6 +745,8 @@ function gameLoadFunctions(game,C) {
     C.initializeGame=(game,scene)=>{
         C.MEMORY={
             cheats:{},
+            hauntedMode:0,
+            glitchIntensity:0,
             panicMode:0,
             playMinigame:0,
             showMinigame:0,
@@ -930,6 +967,8 @@ function gameLoadFunctions(game,C) {
         game.getSpritesWithTag("scrolling").forEach(sprite=>{
             sprite.addTag("oldelements");
         });
+
+        C.setSanityIntensity(game,scene,1);
     }
 
     C.prepareStageChange=(game,scene,direction,tilemap)=>{

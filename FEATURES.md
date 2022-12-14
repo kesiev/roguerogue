@@ -10,7 +10,7 @@
    - 5 minigames
    - 30+ secret counters
    - 20+ secret codes
-   - 20 secret rooms
+   - 20+ secret rooms
    - 10 character skins
    - 6 letter bubbles
    - 7 special bubbles

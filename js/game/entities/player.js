@@ -451,6 +451,9 @@ let gameLoadPlayer=(game,scene,C)=>{
                                 game.playAudio(game.audio.clear);
                             }
 
+                            if (data.setHauntedMode)
+                                C.MEMORY.hauntedMode=true;
+
                             if (data.setEndingSet)
                                 C.MEMORY.endingSet=data.setEndingSet;
 
