@@ -146,6 +146,8 @@ function Game(settings, scenesloader) {
     var
         div=document.createElement('div'),
         audio = document.createElement('audio'),
+        urlParts = document.URL.split('#'),
+        isKioskMode = urlParts[1] == "kiosk",
         passiveSupported,
         fullScreen,
         resourcesPrefix="";
@@ -271,6 +273,22 @@ function Game(settings, scenesloader) {
             if (!this.controls[key.id]) this.controls[key.id] = {};
             this.controls[key.id][key.subId] = 0;
         });
+    }
+
+    // Kiosk mode
+
+    let
+        kioskExit=settings.fps*3;
+
+    this.isKioskMode = () => {
+        return isKioskMode;
+    }
+
+    this.isKioskModeQuit = (player) => {
+        if (isKioskMode) {
+            if (this.controls[player].start > kioskExit)
+                return true;
+        } else return false;
     }
 
     // Storage
@@ -2261,6 +2279,9 @@ function Game(settings, scenesloader) {
         node.appendChild(guiPanel);
         node.appendChild(credits);
         updateConfigurationGui();
+
+        if (isKioskMode)
+            startButton.click();
     }
 
     // Wakelock

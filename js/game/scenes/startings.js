@@ -1,5 +1,13 @@
 function gameLoadStartings(game,scenes,C) {
 
+    scenes.quitGame={
+        onEnter:(game,scene)=>{
+            window.close();
+        },
+        onLogic:(game,scene)=>{},
+        onDraw:(game,scene)=>{}
+    }
+
     scenes.default={
         sprites:{
             panel:{
@@ -140,7 +148,9 @@ function gameLoadStartings(game,scenes,C) {
             let sequenceChanged=false;
             game.logicSprites();
             C.MEMORY.players.forEach((player,p)=>{
-                if (C.MEMORY.credits && !player.isInGame && game.controlIsDown(game.controls[p].start)) {
+                if (game.isKioskModeQuit(p)) {
+                    C.gotoScene(game,scene,game.scenes.quitGame);
+                } else if (C.MEMORY.credits && !player.isInGame && game.controlIsReleased(game.controls[p].start)) {
                     C.MEMORY.credits--;
                     C.markPlayerAsAlive(game,scene,p);
                     C.increaseGlobalCounter(game,scene,"timesJoined");

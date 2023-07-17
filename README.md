@@ -92,6 +92,11 @@ A: Rogue Rogue pays homage to the 80's text-based dungeon crawler [Rogue](https:
     <p>Rogue's Amulet Of Yendor.</p>
 </div>
 
+**Q: Is there a kiosk mode?**
+
+Yes! You can run the game on Google Chrome via game launchers like [Playnite](https://playnite.link/) with a command like ``<your Chrome path>/chrome.exe -kiosk --autoplay-policy=no-user-gesture-required "<your Rogue Rogue installation>/index.html#kiosk"``. The game will autostart and quit holding down the "Start" button for 3 seconds.
+
+
 ## Credits
 
 ### Code
